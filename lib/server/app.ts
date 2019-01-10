@@ -1,14 +1,19 @@
 import * as express from 'express';
 import * as parser from 'body-parser';
+import { Router } from './routes';
+import { SocketServer } from './socketServer';
 
 class App {
   public app: express.Application;
+  private router: Router = new Router();
+  private socketServer: SocketServer;
 
   constructor() {
     this.app = express();
     this.config();
     this.serveStatic();
-    //also need to set up the routes
+    this.router.routes(this.app);
+    this.socketServer = new SocketServer();
   }
 
   private config(): void {

@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc -w",
+    "start": "nodemon ./dist/server",
+    "build": "webpack -w",
+    "socket": "node ./dist/server/socketServer.js"
   },
   "author": "",
   "license": "ISC",
@@ -19,10 +23,13 @@
     "webpack-cli": "^3.2.1"
   },
   "dependencies": {
+    "@types/socket.io": "^2.1.2",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "mongo": "^0.1.0",
-    "nodemon": "^1.18.9"
+    "nodemon": "^1.18.9",
+    "socket.io": "^2.2.0",
+    "socket.io-client": "^2.2.0"
   }
 }
