@@ -1,13 +1,17 @@
 import * as React from 'react';
 import { SocketApi } from './socketApi';
+import { MessagesViewer } from './components/MessagesViewer';
 
 export interface Props {
   // framework: String;
   // compiler: String;
 }
-declare interface message {
+export declare interface message {
   user: String;
   message: String;
+}
+export declare interface messagesViewerProps {
+  messages: Array<message>;
 }
 declare interface StateProperties {
   messages: Array<message>;
@@ -45,6 +49,7 @@ export class App extends React.Component<Props, {}> {
         <div>hello from react</div>
         <div />
         <button onClick={this.handleSendMessage} />
+        <MessagesViewer messages={this.state.messages} />
       </span>
     );
   }

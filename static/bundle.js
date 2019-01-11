@@ -111,6 +111,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var socketApi_1 = __webpack_require__(/*! ./socketApi */ "./lib/client/socketApi.ts");
+var MessagesViewer_1 = __webpack_require__(/*! ./components/MessagesViewer */ "./lib/client/components/MessagesViewer.tsx");
 var App = /** @class */ (function (_super) {
     __extends(App, _super);
     function App(props) {
@@ -141,11 +142,37 @@ var App = /** @class */ (function (_super) {
         return (React.createElement("span", null,
             React.createElement("div", null, "hello from react"),
             React.createElement("div", null),
-            React.createElement("button", { onClick: this.handleSendMessage })));
+            React.createElement("button", { onClick: this.handleSendMessage }),
+            React.createElement(MessagesViewer_1.MessagesViewer, { messages: this.state.messages })));
     };
     return App;
 }(React.Component));
 exports.App = App;
+
+
+/***/ }),
+
+/***/ "./lib/client/components/MessagesViewer.tsx":
+/*!**************************************************!*\
+  !*** ./lib/client/components/MessagesViewer.tsx ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+function MessagesViewer(props) {
+    return (React.createElement("span", null,
+        React.createElement("div", null, props.messages.map(function (message) {
+            return (React.createElement("div", null,
+                message.user,
+                ": ",
+                message.message));
+        }))));
+}
+exports.MessagesViewer = MessagesViewer;
 
 
 /***/ }),
@@ -189,12 +216,10 @@ var SocketApi = /** @class */ (function () {
     };
     SocketApi.prototype.getMessages = function (cb) {
         this.socket.on('sent message', function (chatJSON) {
-            console.log(chatJSON);
             cb(chatJSON);
         });
     };
     SocketApi.prototype.sendMessage = function (msg, cb) {
-        console.log(msg);
         this.socket.emit('sent message', msg);
         cb();
     };

@@ -14,13 +14,11 @@ export class SocketApi {
 
   public getMessages(cb: Function): void {
     this.socket.on('sent message', (chatJSON: String) => {
-      console.log(chatJSON);
       cb(chatJSON);
     });
   }
 
   public sendMessage(msg: String, cb: Function): void {
-    console.log(msg);
     this.socket.emit('sent message', msg);
     cb();
   }
