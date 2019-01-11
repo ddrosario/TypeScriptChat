@@ -5,9 +5,9 @@ export function MessagesViewer(props: messagesViewerProps) {
   return (
     <span>
       <div>
-        {props.messages.map((message: message) => {
+        {props.messages.map((message: message, index: number) => {
           return (
-            <div>
+            <div key={index}>
               {message.user}: {message.message}
             </div>
           );

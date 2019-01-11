@@ -112,14 +112,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var socketApi_1 = __webpack_require__(/*! ./socketApi */ "./lib/client/socketApi.ts");
 var MessagesViewer_1 = __webpack_require__(/*! ./components/MessagesViewer */ "./lib/client/components/MessagesViewer.tsx");
+var ChatInput_1 = __webpack_require__(/*! ./components/ChatInput */ "./lib/client/components/ChatInput.tsx");
 var App = /** @class */ (function (_super) {
     __extends(App, _super);
     function App(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            messages: []
+            messages: [],
+            message: '',
+            user: ''
         };
         _this.socketApi = new socketApi_1.SocketApi();
+        _this.handleInput = _this.handleInput.bind(_this);
+        _this.handleSubmit = _this.handleSubmit.bind(_this);
         _this.handleSendMessage = _this.handleSendMessage.bind(_this);
         return _this;
     }
@@ -128,7 +133,7 @@ var App = /** @class */ (function (_super) {
         this.socketApi.join('Drew', function (chatJSON) {
             var chatMessage = JSON.parse(chatJSON);
             _this.setState({
-                messages: _this.state.messages.concat([chatMessage])
+                messages: [chatMessage].concat(_this.state.messages)
             });
         });
     };
@@ -138,16 +143,56 @@ var App = /** @class */ (function (_super) {
         });
         e.preventDefault();
     };
+    App.prototype.handleInput = function (e) {
+        this.setState({
+            message: e.currentTarget.value
+        });
+    };
+    App.prototype.handleSubmit = function (e) {
+        var context = this;
+        this.socketApi.sendMessage(this.state.message, function () {
+            context.setState({
+                message: ''
+            });
+            console.log('success!');
+        });
+        e.preventDefault();
+    };
     App.prototype.render = function () {
         return (React.createElement("span", null,
-            React.createElement("div", null, "hello from react"),
-            React.createElement("div", null),
-            React.createElement("button", { onClick: this.handleSendMessage }),
-            React.createElement(MessagesViewer_1.MessagesViewer, { messages: this.state.messages })));
+            React.createElement(ChatInput_1.ChatInput, { handleInput: this.handleInput, handleSubmit: this.handleSubmit, message: this.state.message }),
+            React.createElement("span", null,
+                React.createElement(MessagesViewer_1.MessagesViewer, { messages: this.state.messages }))));
     };
     return App;
 }(React.Component));
 exports.App = App;
+
+
+/***/ }),
+
+/***/ "./lib/client/components/ChatInput.tsx":
+/*!*********************************************!*\
+  !*** ./lib/client/components/ChatInput.tsx ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+function ChatInput(props) {
+    return (React.createElement("span", null,
+        React.createElement("form", { onSubmit: function (e) {
+                props.handleSubmit(e);
+            } },
+            React.createElement("input", { type: "text", onChange: function (e) {
+                    props.handleInput(e);
+                }, value: props.message }),
+            React.createElement("input", { type: "submit" }))));
+}
+exports.ChatInput = ChatInput;
 
 
 /***/ }),
@@ -165,8 +210,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 function MessagesViewer(props) {
     return (React.createElement("span", null,
-        React.createElement("div", null, props.messages.map(function (message) {
-            return (React.createElement("div", null,
+        React.createElement("div", null, props.messages.map(function (message, index) {
+            return (React.createElement("div", { key: index },
                 message.user,
                 ": ",
                 message.message));
