@@ -1,27 +1,32 @@
 import * as React from 'react';
 import { SocketApi } from './socketApi';
 
-interface AppProps {
-  framework: String;
-  compiler: String;
+export interface Props {
+  // framework: String;
+  // compiler: String;
 }
-interface messageTuple {
-  user: String;
-  message: String;
+declare interface message {
+  user: string;
+  message: string;
 }
-interface StateProperties {
-  messages: Array<messageTuple>;
+declare interface StateProperties {
+  messages: Array<message>;
 }
 
-export default class App extends React.Component<AppProps, {}> {
-  private state: StateProperties;
+export class App extends React.Component<Props, {}> {
+  readonly state: StateProperties = {
+    messages: [{ user: 'bob', message: 'hello' }]
+  };
   private socketApi: SocketApi;
 
-  constructor(props: AppProps) {
-    super(props);
-    this.state = {
-      messages: []
-    };
+  // constructor(props: Props) {
+  //   super(props);
+  //   this.state = {
+  //     messages: []
+  //   };
+  //   this.socketApi = new SocketApi();
+  // }
+  componentDidMount(): void {
     this.socketApi = new SocketApi();
   }
   render() {
