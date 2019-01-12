@@ -113,6 +113,7 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var socketApi_1 = __webpack_require__(/*! ./socketApi */ "./lib/client/socketApi.ts");
 var MessagesViewer_1 = __webpack_require__(/*! ./components/MessagesViewer */ "./lib/client/components/MessagesViewer.tsx");
 var ChatInput_1 = __webpack_require__(/*! ./components/ChatInput */ "./lib/client/components/ChatInput.tsx");
+var UserInput_1 = __webpack_require__(/*! ./components/UserInput */ "./lib/client/components/UserInput.tsx");
 var App = /** @class */ (function (_super) {
     __extends(App, _super);
     function App(props) {
@@ -120,7 +121,8 @@ var App = /** @class */ (function (_super) {
         _this.state = {
             messages: [],
             message: '',
-            user: ''
+            user: '',
+            loggedIn: false
         };
         _this.socketApi = new socketApi_1.SocketApi();
         _this.handleInput = _this.handleInput.bind(_this);
@@ -128,15 +130,7 @@ var App = /** @class */ (function (_super) {
         _this.handleSendMessage = _this.handleSendMessage.bind(_this);
         return _this;
     }
-    App.prototype.componentDidMount = function () {
-        var _this = this;
-        this.socketApi.join('Drew', function (chatJSON) {
-            var chatMessage = JSON.parse(chatJSON);
-            _this.setState({
-                messages: [chatMessage].concat(_this.state.messages)
-            });
-        });
-    };
+    App.prototype.componentDidMount = function () { };
     App.prototype.handleSendMessage = function (e) {
         this.socketApi.sendMessage('says hi', function () {
             console.log('success!');
@@ -144,23 +138,46 @@ var App = /** @class */ (function (_super) {
         e.preventDefault();
     };
     App.prototype.handleInput = function (e) {
-        this.setState({
-            message: e.currentTarget.value
+        var stateUpdate = {};
+        if (e.currentTarget.id === 'user') {
+            stateUpdate.user = e.currentTarget.value;
+        }
+        if (e.currentTarget.id === 'message') {
+            stateUpdate.message = e.currentTarget.value;
+        }
+        this.setState(stateUpdate);
+    };
+    App.prototype.listenForMessages = function () {
+        var _this = this;
+        var context = this;
+        this.socketApi.getMessages(function (chatJSON) {
+            var chatMessage = JSON.parse(chatJSON);
+            context.setState({
+                messages: [chatMessage].concat(_this.state.messages)
+            });
         });
     };
     App.prototype.handleSubmit = function (e) {
+        var _this = this;
         var context = this;
-        this.socketApi.sendMessage(this.state.message, function () {
-            context.setState({
-                message: ''
+        if (e.currentTarget.className === 'UserInput') {
+            this.socketApi.join(this.state.user, function () {
+                _this.setState({ loggedIn: true });
+                _this.listenForMessages();
             });
-            console.log('success!');
-        });
+        }
+        else {
+            this.socketApi.sendMessage(this.state.message, function () {
+                context.setState({
+                    message: ''
+                });
+            });
+        }
         e.preventDefault();
     };
     App.prototype.render = function () {
         return (React.createElement("span", null,
-            React.createElement(ChatInput_1.ChatInput, { handleInput: this.handleInput, handleSubmit: this.handleSubmit, message: this.state.message }),
+            !this.state.loggedIn ? (React.createElement(UserInput_1.UserInput, { handleInput: this.handleInput, handleSubmit: this.handleSubmit, user: this.state.user })) : (React.createElement(ChatInput_1.ChatInput, { handleInput: this.handleInput, handleSubmit: this.handleSubmit, message: this.state.message })),
             React.createElement("span", null,
                 React.createElement(MessagesViewer_1.MessagesViewer, { messages: this.state.messages }))));
     };
@@ -184,10 +201,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 function ChatInput(props) {
     return (React.createElement("span", null,
-        React.createElement("form", { onSubmit: function (e) {
+        React.createElement("form", { className: "ChatInput", onSubmit: function (e) {
                 props.handleSubmit(e);
             } },
-            React.createElement("input", { type: "text", onChange: function (e) {
+            React.createElement("input", { id: "message", type: "text", placeholder: "Enter a message", onChange: function (e) {
                     props.handleInput(e);
                 }, value: props.message }),
             React.createElement("input", { type: "submit" }))));
@@ -218,6 +235,32 @@ function MessagesViewer(props) {
         }))));
 }
 exports.MessagesViewer = MessagesViewer;
+
+
+/***/ }),
+
+/***/ "./lib/client/components/UserInput.tsx":
+/*!*********************************************!*\
+  !*** ./lib/client/components/UserInput.tsx ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+function UserInput(props) {
+    return (React.createElement("span", null,
+        React.createElement("form", { className: "UserInput", onSubmit: function (e) {
+                props.handleSubmit(e);
+            } },
+            React.createElement("input", { id: "user", type: "text", placeholder: "Please enter a username", onChange: function (e) {
+                    props.handleInput(e);
+                }, value: props.user }),
+            React.createElement("input", { type: "submit" }))));
+}
+exports.UserInput = UserInput;
 
 
 /***/ }),
@@ -257,11 +300,14 @@ var SocketApi = /** @class */ (function () {
     }
     SocketApi.prototype.join = function (user, cb) {
         this.socket.emit('join', user);
-        this.getMessages(cb);
+        cb(this.getMessages);
     };
     SocketApi.prototype.getMessages = function (cb) {
         this.socket.on('sent message', function (chatJSON) {
             cb(chatJSON);
+        });
+        this.socket.on('join', function (user) {
+            console.log('user joined', user);
         });
     };
     SocketApi.prototype.sendMessage = function (msg, cb) {

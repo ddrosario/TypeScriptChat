@@ -2,6 +2,7 @@ import * as React from 'react';
 import { SocketApi } from './socketApi';
 import { MessagesViewer } from './components/MessagesViewer';
 import { ChatInput } from './components/ChatInput';
+import { UserInput } from './components/UserInput';
 
 export interface Props {
   // framework: String;
@@ -18,8 +19,12 @@ declare interface StateProperties {
   messages: Array<message>;
   message: string;
   user: string;
+  loggedIn: boolean;
 }
-
+declare interface stateUpdate {
+  user?: string;
+  message?: string;
+}
 export class App extends React.Component<Props, {}> {
   readonly state: StateProperties;
   private socketApi: SocketApi;
@@ -29,21 +34,15 @@ export class App extends React.Component<Props, {}> {
     this.state = {
       messages: [],
       message: '',
-      user: ''
+      user: '',
+      loggedIn: false
     };
     this.socketApi = new SocketApi();
     this.handleInput = this.handleInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleSendMessage = this.handleSendMessage.bind(this);
   }
-  componentDidMount(): void {
-    this.socketApi.join('Drew', (chatJSON: string) => {
-      let chatMessage: Object = JSON.parse(chatJSON);
-      this.setState({
-        messages: [chatMessage].concat(this.state.messages)
-      });
-    });
-  }
+  componentDidMount(): void {}
   private handleSendMessage(e: React.FormEvent<HTMLButtonElement>): void {
     this.socketApi.sendMessage('says hi', () => {
       console.log('success!');
@@ -51,29 +50,57 @@ export class App extends React.Component<Props, {}> {
     e.preventDefault();
   }
   private handleInput(e: React.FormEvent<HTMLInputElement>): void {
-    this.setState({
-      message: e.currentTarget.value
+    const stateUpdate: stateUpdate = {};
+    if (e.currentTarget.id === 'user') {
+      stateUpdate.user = e.currentTarget.value;
+    }
+    if (e.currentTarget.id === 'message') {
+      stateUpdate.message = e.currentTarget.value;
+    }
+    this.setState(stateUpdate);
+  }
+  private listenForMessages(): void {
+    const context: App = this;
+    this.socketApi.getMessages((chatJSON: string) => {
+      let chatMessage: Object = JSON.parse(chatJSON);
+      context.setState({
+        messages: [chatMessage].concat(this.state.messages)
+      });
     });
   }
-
   private handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     const context: App = this;
-    this.socketApi.sendMessage(this.state.message, () => {
-      context.setState({
-        message: ''
+    if (e.currentTarget.className === 'UserInput') {
+      this.socketApi.join(this.state.user, () => {
+        this.setState({ loggedIn: true });
+        this.listenForMessages();
       });
-      console.log('success!');
-    });
+    } else {
+      this.socketApi.sendMessage(this.state.message, () => {
+        context.setState({
+          message: ''
+        });
+      });
+    }
     e.preventDefault();
   }
   render() {
     return (
       <span>
-        <ChatInput
-          handleInput={this.handleInput}
-          handleSubmit={this.handleSubmit}
-          message={this.state.message}
-        />
+        {!this.state.loggedIn ? (
+          <UserInput
+            handleInput={this.handleInput}
+            handleSubmit={this.handleSubmit}
+            user={this.state.user}
+          />
+        ) : (
+          <ChatInput
+            handleInput={this.handleInput}
+            handleSubmit={this.handleSubmit}
+            message={this.state.message}
+          />
+        )}
+
         <span>
           <MessagesViewer messages={this.state.messages} />
         </span>

@@ -3,25 +3,25 @@ import * as React from 'react';
 interface Props {
   handleInput: Function;
   handleSubmit: Function;
-  message: string;
+  user: string;
 }
-export function ChatInput(props: Props) {
+export function UserInput(props: Props) {
   return (
     <span>
       <form
-        className="ChatInput"
+        className="UserInput"
         onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
           props.handleSubmit(e);
         }}
       >
         <input
-          id="message"
+          id="user"
           type="text"
-          placeholder="Enter a message"
+          placeholder="Please enter a username"
           onChange={(e: React.FormEvent<HTMLInputElement>) => {
             props.handleInput(e);
           }}
-          value={props.message}
+          value={props.user}
         />
         <input type="submit" />
       </form>

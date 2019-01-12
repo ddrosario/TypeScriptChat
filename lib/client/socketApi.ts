@@ -9,12 +9,15 @@ export class SocketApi {
 
   public join(user: String, cb: Function): void {
     this.socket.emit('join', user);
-    this.getMessages(cb);
+    cb(this.getMessages);
   }
 
   public getMessages(cb: Function): void {
     this.socket.on('sent message', (chatJSON: String) => {
       cb(chatJSON);
+    });
+    this.socket.on('join', (user: string) => {
+      console.log('user joined', user);
     });
   }
 
