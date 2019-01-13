@@ -11,6 +11,8 @@ export class SocketServer {
   private app: express.Application;
   private server: Server;
   private io: SocketIO.Server;
+  private numberOfUsers: number = 0;
+  private chat: Array<chatMessage>;
   public readonly PORT: number = 3005;
 
   constructor() {
@@ -27,11 +29,12 @@ export class SocketServer {
       this.io.on('connection', (socket: SocketIO.Socket) => {
         console.log('user connected!');
         let currentUser: String = socket.id;
-
+        this.numberOfUsers++;
         socket.on('join', (user: String) => {
           currentUser = user;
+
           console.log(user + ' has joined the chat');
-          socket.broadcast.emit('join', user);
+          socket.broadcast.emit('join', user, this.numberOfUsers);
 
           socket.on('sent message', (message: string) => {
             let chat: chatMessage = { user, message };
@@ -44,8 +47,12 @@ export class SocketServer {
         socket.on('disconnect', () => {
           console.log(currentUser + ' has disconnected');
           this.io.emit('disconnected', currentUser);
+          this.numberOfUsers--;
         });
       });
     });
+  }
+  private upToSpeed(socket: SocketIO.Server): void {
+    socket.emit('up to speed');
   }
 }

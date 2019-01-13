@@ -20,6 +20,7 @@ declare interface StateProperties {
   message: string;
   user: string;
   loggedIn: boolean;
+  numberOfUsers: string;
 }
 declare interface stateUpdate {
   user?: string;
@@ -35,7 +36,8 @@ export class App extends React.Component<Props, {}> {
       messages: [],
       message: '',
       user: '',
-      loggedIn: false
+      loggedIn: false,
+      numberOfUsers: '0'
     };
     this.socketApi = new SocketApi();
     this.handleInput = this.handleInput.bind(this);
@@ -67,6 +69,8 @@ export class App extends React.Component<Props, {}> {
         messages: [chatMessage].concat(this.state.messages)
       });
     });
+
+    this.socketApi.getUserJoined((user: string, numberOfUsers: string) => {});
   }
   private handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     const context: App = this;
@@ -102,6 +106,7 @@ export class App extends React.Component<Props, {}> {
         )}
 
         <span>
+          <div>There are currently {}</div>
           <MessagesViewer messages={this.state.messages} />
         </span>
       </span>

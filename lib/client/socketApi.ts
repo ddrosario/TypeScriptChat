@@ -16,8 +16,12 @@ export class SocketApi {
     this.socket.on('sent message', (chatJSON: String) => {
       cb(chatJSON);
     });
-    this.socket.on('join', (user: string) => {
+  }
+
+  public getUserJoined(cb: Function): void {
+    this.socket.on('join', (user: string, numberOfUsers: string) => {
       console.log('user joined', user);
+      cb(user, numberOfUsers);
     });
   }
 
