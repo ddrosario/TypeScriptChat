@@ -119,9 +119,9 @@ var App = /** @class */ (function (_super) {
     function App(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            messages: [],
-            message: '',
             user: '',
+            message: '',
+            messages: [],
             loggedIn: false,
             numberOfUsers: '0'
         };
@@ -129,26 +129,10 @@ var App = /** @class */ (function (_super) {
         _this.handleInput = _this.handleInput.bind(_this);
         _this.handleSubmit = _this.handleSubmit.bind(_this);
         _this.updateMessages = _this.updateMessages.bind(_this);
-        _this.handleSendMessage = _this.handleSendMessage.bind(_this);
         return _this;
     }
     App.prototype.componentDidMount = function () { };
-    App.prototype.handleSendMessage = function (e) {
-        this.socketApi.sendMessage('says hi', function () {
-            console.log('success!');
-        });
-        e.preventDefault();
-    };
-    App.prototype.handleInput = function (e) {
-        var stateUpdate = {};
-        if (e.currentTarget.id === 'user') {
-            stateUpdate.user = e.currentTarget.value;
-        }
-        if (e.currentTarget.id === 'message') {
-            stateUpdate.message = e.currentTarget.value;
-        }
-        this.setState(stateUpdate);
-    };
+    /* SocketAPI functionality */
     App.prototype.listenForMessages = function () {
         var _this = this;
         this.socketApi.getMessages(this.updateMessages);
@@ -165,21 +149,39 @@ var App = /** @class */ (function (_super) {
             numberOfUsers: numberOfUsers || this.state.numberOfUsers
         });
     };
-    App.prototype.handleSubmit = function (e) {
+    App.prototype.joinChat = function () {
         var _this = this;
-        if (e.currentTarget.className === 'UserInput') {
-            this.socketApi.join(this.state.user, function (chatJSON, numberOfUsers) {
-                _this.setState({ loggedIn: true });
-                _this.updateMessages(chatJSON, numberOfUsers);
-                _this.listenForMessages();
+        this.socketApi.join(this.state.user, function (chatJSON, numberOfUsers) {
+            _this.setState({ loggedIn: true });
+            _this.updateMessages(chatJSON, numberOfUsers);
+            _this.listenForMessages();
+        });
+    };
+    App.prototype.sendMessage = function () {
+        var _this = this;
+        this.socketApi.sendMessage(this.state.message, function () {
+            _this.setState({
+                message: ''
             });
+        });
+    };
+    /* React events */
+    App.prototype.handleInput = function (e) {
+        var stateUpdate = {};
+        if (e.currentTarget.id === 'user') {
+            stateUpdate.user = e.currentTarget.value;
+        }
+        if (e.currentTarget.id === 'message') {
+            stateUpdate.message = e.currentTarget.value;
+        }
+        this.setState(stateUpdate);
+    };
+    App.prototype.handleSubmit = function (e) {
+        if (e.currentTarget.className === 'UserInput') {
+            this.joinChat();
         }
         else {
-            this.socketApi.sendMessage(this.state.message, function () {
-                _this.setState({
-                    message: ''
-                });
-            });
+            this.sendMessage();
         }
         e.preventDefault();
     };

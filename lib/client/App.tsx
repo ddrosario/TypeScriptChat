@@ -33,9 +33,9 @@ export class App extends React.Component<Props, {}> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      messages: [],
-      message: '',
       user: '',
+      message: '',
+      messages: [],
       loggedIn: false,
       numberOfUsers: '0'
     };
@@ -43,25 +43,9 @@ export class App extends React.Component<Props, {}> {
     this.handleInput = this.handleInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updateMessages = this.updateMessages.bind(this);
-    this.handleSendMessage = this.handleSendMessage.bind(this);
   }
   componentDidMount(): void {}
-  private handleSendMessage(e: React.FormEvent<HTMLButtonElement>): void {
-    this.socketApi.sendMessage('says hi', () => {
-      console.log('success!');
-    });
-    e.preventDefault();
-  }
-  private handleInput(e: React.FormEvent<HTMLInputElement>): void {
-    const stateUpdate: stateUpdate = {};
-    if (e.currentTarget.id === 'user') {
-      stateUpdate.user = e.currentTarget.value;
-    }
-    if (e.currentTarget.id === 'message') {
-      stateUpdate.message = e.currentTarget.value;
-    }
-    this.setState(stateUpdate);
-  }
+  /* SocketAPI functionality */
   private listenForMessages(): void {
     this.socketApi.getMessages(this.updateMessages);
     this.socketApi.getUserJoined((user: string, numberOfUsers: string) => {
@@ -77,26 +61,43 @@ export class App extends React.Component<Props, {}> {
       numberOfUsers: numberOfUsers || this.state.numberOfUsers
     });
   }
-
+  private joinChat() {
+    this.socketApi.join(
+      this.state.user,
+      (chatJSON: string, numberOfUsers: string) => {
+        this.setState({ loggedIn: true });
+        this.updateMessages(chatJSON, numberOfUsers);
+        this.listenForMessages();
+      }
+    );
+  }
+  private sendMessage() {
+    this.socketApi.sendMessage(this.state.message, () => {
+      this.setState({
+        message: ''
+      });
+    });
+  }
+  /* React events */
+  private handleInput(e: React.FormEvent<HTMLInputElement>): void {
+    const stateUpdate: stateUpdate = {};
+    if (e.currentTarget.id === 'user') {
+      stateUpdate.user = e.currentTarget.value;
+    }
+    if (e.currentTarget.id === 'message') {
+      stateUpdate.message = e.currentTarget.value;
+    }
+    this.setState(stateUpdate);
+  }
   private handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     if (e.currentTarget.className === 'UserInput') {
-      this.socketApi.join(
-        this.state.user,
-        (chatJSON: string, numberOfUsers: string) => {
-          this.setState({ loggedIn: true });
-          this.updateMessages(chatJSON, numberOfUsers);
-          this.listenForMessages();
-        }
-      );
+      this.joinChat();
     } else {
-      this.socketApi.sendMessage(this.state.message, () => {
-        this.setState({
-          message: ''
-        });
-      });
+      this.sendMessage();
     }
     e.preventDefault();
   }
+
   render() {
     return (
       <span>
