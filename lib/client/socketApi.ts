@@ -9,7 +9,7 @@ export class SocketApi {
 
   public join(user: String, cb: Function): void {
     this.socket.emit('join', user);
-    cb(this.getMessages);
+    this.getPreviousMessages(cb);
   }
 
   public getMessages(cb: Function): void {
@@ -28,5 +28,11 @@ export class SocketApi {
   public sendMessage(msg: String, cb: Function): void {
     this.socket.emit('sent message', msg);
     cb();
+  }
+
+  private getPreviousMessages(cb: Function): void {
+    this.socket.on('up to speed', (previousMessages: String) => {
+      cb(previousMessages);
+    });
   }
 }

@@ -19,10 +19,11 @@ export class SocketServer {
     this.app = express();
     this.server = createServer(this.app);
     this.io = socketIo(this.server);
+    this.chat = [];
     this.connect();
   }
 
-  public connect(): void {
+  private connect(): void {
     this.server.listen(this.PORT, () => {
       console.log('Socket Server listening to port: ', this.PORT);
 
@@ -32,14 +33,15 @@ export class SocketServer {
         this.numberOfUsers++;
         socket.on('join', (user: String) => {
           currentUser = user;
-
           console.log(user + ' has joined the chat');
           socket.broadcast.emit('join', user, this.numberOfUsers);
 
+          this.getChatToSocket(socket);
+
           socket.on('sent message', (message: string) => {
-            let chat: chatMessage = { user, message };
+            let chat: Array<chatMessage> = [{ user, message }];
             let chatJSON: String = JSON.stringify(chat);
-            console.log(chatJSON);
+            this.addToChat(chat);
             this.io.emit('sent message', chatJSON);
           });
         });
@@ -52,7 +54,10 @@ export class SocketServer {
       });
     });
   }
-  private upToSpeed(socket: SocketIO.Server): void {
-    socket.emit('up to speed');
+  private addToChat(message: Array<chatMessage>): void {
+    this.chat = this.chat.concat(message);
+  }
+  private getChatToSocket(socket: SocketIO.Socket): void {
+    socket.emit('up to speed', JSON.stringify(this.chat));
   }
 }
