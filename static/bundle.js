@@ -150,28 +150,33 @@ var App = /** @class */ (function (_super) {
         this.setState(stateUpdate);
     };
     App.prototype.listenForMessages = function () {
+        var _this = this;
         this.socketApi.getMessages(this.updateMessages);
-        this.socketApi.getUserJoined(function (user, numberOfUsers) { });
+        this.socketApi.getUserJoined(function (user, numberOfUsers) {
+            _this.setState({
+                numberOfUsers: numberOfUsers
+            });
+        });
     };
-    App.prototype.updateMessages = function (chatJSON) {
+    App.prototype.updateMessages = function (chatJSON, numberOfUsers) {
         var chatMessage = JSON.parse(chatJSON);
         this.setState({
-            messages: chatMessage.concat(this.state.messages)
+            messages: chatMessage.concat(this.state.messages),
+            numberOfUsers: numberOfUsers || this.state.numberOfUsers
         });
     };
     App.prototype.handleSubmit = function (e) {
         var _this = this;
-        var context = this;
         if (e.currentTarget.className === 'UserInput') {
-            this.socketApi.join(this.state.user, function (chatJSON) {
+            this.socketApi.join(this.state.user, function (chatJSON, numberOfUsers) {
                 _this.setState({ loggedIn: true });
-                _this.updateMessages(chatJSON);
+                _this.updateMessages(chatJSON, numberOfUsers);
                 _this.listenForMessages();
             });
         }
         else {
             this.socketApi.sendMessage(this.state.message, function () {
-                context.setState({
+                _this.setState({
                     message: ''
                 });
             });
@@ -182,7 +187,10 @@ var App = /** @class */ (function (_super) {
         return (React.createElement("span", null,
             !this.state.loggedIn ? (React.createElement(UserInput_1.UserInput, { handleInput: this.handleInput, handleSubmit: this.handleSubmit, user: this.state.user })) : (React.createElement(ChatInput_1.ChatInput, { handleInput: this.handleInput, handleSubmit: this.handleSubmit, message: this.state.message })),
             React.createElement("span", null,
-                React.createElement("div", null, "There are currently "),
+                React.createElement("div", null,
+                    "There are currently ",
+                    this.state.numberOfUsers,
+                    " users"),
                 React.createElement(MessagesViewer_1.MessagesViewer, { messages: this.state.messages }))));
     };
     return App;
@@ -322,8 +330,8 @@ var SocketApi = /** @class */ (function () {
         cb();
     };
     SocketApi.prototype.getPreviousMessages = function (cb) {
-        this.socket.on('up to speed', function (previousMessages) {
-            cb(previousMessages);
+        this.socket.on('up to speed', function (previousMessages, numberOfUsers) {
+            cb(previousMessages, numberOfUsers);
         });
     };
     return SocketApi;

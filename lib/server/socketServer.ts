@@ -54,10 +54,17 @@ export class SocketServer {
       });
     });
   }
+  public getNumberOfUsers(): number {
+    return this.numberOfUsers;
+  }
   private addToChat(message: Array<chatMessage>): void {
     this.chat = this.chat.concat(message);
   }
   private getChatToSocket(socket: SocketIO.Socket): void {
-    socket.emit('up to speed', JSON.stringify(this.chat));
+    socket.emit(
+      'up to speed',
+      JSON.stringify(this.chat),
+      this.getNumberOfUsers()
+    );
   }
 }

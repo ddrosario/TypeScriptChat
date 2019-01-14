@@ -64,26 +64,33 @@ export class App extends React.Component<Props, {}> {
   }
   private listenForMessages(): void {
     this.socketApi.getMessages(this.updateMessages);
-    this.socketApi.getUserJoined((user: string, numberOfUsers: string) => {});
+    this.socketApi.getUserJoined((user: string, numberOfUsers: string) => {
+      this.setState({
+        numberOfUsers: numberOfUsers
+      });
+    });
   }
-  private updateMessages(chatJSON: string): void {
+  private updateMessages(chatJSON: string, numberOfUsers: string): void {
     let chatMessage: Array<message> = JSON.parse(chatJSON);
     this.setState({
-      messages: chatMessage.concat(this.state.messages)
+      messages: chatMessage.concat(this.state.messages),
+      numberOfUsers: numberOfUsers || this.state.numberOfUsers
     });
   }
 
   private handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
-    const context: App = this;
     if (e.currentTarget.className === 'UserInput') {
-      this.socketApi.join(this.state.user, (chatJSON: string) => {
-        this.setState({ loggedIn: true });
-        this.updateMessages(chatJSON);
-        this.listenForMessages();
-      });
+      this.socketApi.join(
+        this.state.user,
+        (chatJSON: string, numberOfUsers: string) => {
+          this.setState({ loggedIn: true });
+          this.updateMessages(chatJSON, numberOfUsers);
+          this.listenForMessages();
+        }
+      );
     } else {
       this.socketApi.sendMessage(this.state.message, () => {
-        context.setState({
+        this.setState({
           message: ''
         });
       });
@@ -108,7 +115,7 @@ export class App extends React.Component<Props, {}> {
         )}
 
         <span>
-          <div>There are currently {}</div>
+          <div>There are currently {this.state.numberOfUsers} users</div>
           <MessagesViewer messages={this.state.messages} />
         </span>
       </span>

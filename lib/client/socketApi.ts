@@ -31,8 +31,11 @@ export class SocketApi {
   }
 
   private getPreviousMessages(cb: Function): void {
-    this.socket.on('up to speed', (previousMessages: String) => {
-      cb(previousMessages);
-    });
+    this.socket.on(
+      'up to speed',
+      (previousMessages: String, numberOfUsers: String) => {
+        cb(previousMessages, numberOfUsers);
+      }
+    );
   }
 }
