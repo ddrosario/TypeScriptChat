@@ -154,7 +154,6 @@ var App = /** @class */ (function (_super) {
         this.socketApi.getUserJoined(function (user, numberOfUsers) { });
     };
     App.prototype.updateMessages = function (chatJSON) {
-        console.log(chatJSON);
         var chatMessage = JSON.parse(chatJSON);
         this.setState({
             messages: chatMessage.concat(this.state.messages)

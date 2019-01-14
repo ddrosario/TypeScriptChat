@@ -67,7 +67,6 @@ export class App extends React.Component<Props, {}> {
     this.socketApi.getUserJoined((user: string, numberOfUsers: string) => {});
   }
   private updateMessages(chatJSON: string): void {
-    console.log(chatJSON);
     let chatMessage: Array<message> = JSON.parse(chatJSON);
     this.setState({
       messages: chatMessage.concat(this.state.messages)
