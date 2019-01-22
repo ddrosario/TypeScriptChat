@@ -36,21 +36,11 @@ export class SocketServer {
           console.log(user + ' has joined the chat');
           socket.broadcast.emit('join', user, this.numberOfUsers);
 
-          this.getChatToSocket(socket);
-
-          socket.on('sent message', (message: string) => {
-            let chat: Array<chatMessage> = [{ user, message }];
-            let chatJSON: String = JSON.stringify(chat);
-            this.addToChat(chat);
-            this.io.emit('sent message', chatJSON);
-          });
+          this.getSocketUpToSpeedWithTheChat(socket);
+          this.listenForMessages(socket, user);
         });
 
-        socket.on('disconnect', () => {
-          console.log(currentUser + ' has disconnected');
-          this.io.emit('disconnected', currentUser);
-          this.numberOfUsers--;
-        });
+        this.listenForDisconect(socket);
       });
     });
   }
@@ -60,7 +50,24 @@ export class SocketServer {
   private addToChat(message: Array<chatMessage>): void {
     this.chat = this.chat.concat(message);
   }
-  private getChatToSocket(socket: SocketIO.Socket): void {
+  private listenForDisconect(
+    socket: SocketIO.Socket,
+    user: String = socket.id
+  ): void {
+    socket.on('disconnect', () => {
+      this.io.emit('disconnected', user);
+      this.numberOfUsers--;
+    });
+  }
+  private listenForMessages(socket: SocketIO.Socket, user: String): void {
+    socket.on('sent message', (message: string) => {
+      let chat: Array<chatMessage> = [{ user, message }];
+      let chatJSON: String = JSON.stringify(chat);
+      this.addToChat(chat);
+      this.io.emit('sent message', chatJSON);
+    });
+  }
+  private getSocketUpToSpeedWithTheChat(socket: SocketIO.Socket): void {
     socket.emit(
       'up to speed',
       JSON.stringify(this.chat),

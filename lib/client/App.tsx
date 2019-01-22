@@ -61,7 +61,7 @@ export class App extends React.Component<Props, {}> {
       numberOfUsers: numberOfUsers || this.state.numberOfUsers
     });
   }
-  private joinChat() {
+  private joinChat(): void {
     this.socketApi.join(
       this.state.user,
       (chatJSON: string, numberOfUsers: string) => {
@@ -71,7 +71,7 @@ export class App extends React.Component<Props, {}> {
       }
     );
   }
-  private sendMessage() {
+  private sendMessage(): void {
     this.socketApi.sendMessage(this.state.message, () => {
       this.setState({
         message: ''
